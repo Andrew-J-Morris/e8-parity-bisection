@@ -2,76 +2,68 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22962066.svg)](https://doi.org/10.5281/zenodo.22962066)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Standard: C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
-[![OEIS: A004010](https://img.shields.io/badge/OEIS-A004010-green.svg)](https://oeis.org/A004010)
 
-Hardware-native, integer-only discrete lattice point enumeration of the 8-dimensional exceptional Lie algebra root lattice ($E_8$) collapsed to quasi-quadratic $\mathcal{O}(r^2)$ complexity via Diophantine scalar dilation and dimension-paired bisection.
-
-This repository provides the reference C++20 implementation, benchmark harness, and formal verification suite for **Paper V** of the *Discrete Lattice Research Suite*.
-
----
-
-## Theoretical Foundation
-
-The classical 8-dimensional Gosset lattice $E_8$ (the densest known packing in $\mathbb{R}^8$ with kissing number 240) is standardly defined as the union of the root lattice $D_8$ and a shifted half-integer coset:
-
-```math
-E_8 = D_8 \cup \left( D_8 + \left(\tfrac{1}{2}\right)^8 \right) = \left\{ x \in \mathbb{Z}^8 \cup \left(\mathbb{Z} + \tfrac{1}{2}\right)^8 \;\middle|\; \sum_{i=1}^8 x_i \equiv 0 \pmod 2 \right\}
+## Quickstart Compilation
+Compile and run the E_8 lattice bisection benchmark and OEIS A004010 verification test bench:
+```bash
+g++ -O3 -std=c++20 A004010.cpp -o benchmark && ./benchmark
 ```
 
-Evaluating high-dimensional volumes on this continuous representation traditionally requires floating-point operations, transcendental modular forms, or exponential $\mathcal{O}(r^8)$ coordinate walks.
+**Discrete Geometry First: Collapsing High-Dimensional Lattice Enumeration from O(r^N) to Quasi-Quadratic O(r^2 log_2 N log r)**
 
-### 1. The $2E_8$ Diophantine Dilation
-To eliminate fractional half-integer registers and restore integer-native ALU execution, we apply a uniform global scalar dilation $y = 2x$. Under this mapping:
-* The continuous half-integer coordinates map strictly into $\mathbb{Z}^8$.
-* The squared Euclidean norm scales by a factor of 4:
-  $$\Vert{}y\Vert{}^2 = 4\Vert{}x\Vert{}^2$$
-* Because all minimal shell vectors in $E_8$ satisfy $\Vert{}x\Vert{}^2 = 2k$ ($k \in \mathbb{N}$), the dilated norm space evaluates as:
-  $$\Vert{}y\Vert{}^2 = 8k \quad \Longrightarrow \quad \Vert{}y\Vert{}^2 \equiv 0 \pmod 8$$
+For over two centuries, the standard approach to discrete lattice point enumeration has relied on continuous Euclidean tools—transcendental functions, Bessel expansions, modular forms, and floating-point approximations—projected onto integer grids. This approach frequently runs into boundary-vertex collisions, floating-point precision drift, and the classical exponential coordinate bottleneck.
 
-### 2. All-Even and All-Odd Sublattice Partitioning
-Under the $y = 2x$ dilation, the geometry partitions cleanly into two disjoint Diophantine parity manifolds governed by an invariant modulo-4 sum constraint:
+Instead of forcing continuous calculus onto discrete space, I developed an integer-native geometric framework that treats discrete grids on their own native algebraic terms. By recognizing that squared Euclidean distance is additively separable across orthogonal submanifolds, high-dimensional boundaries can be decoupled and evaluated via single-pass integer dot products and discrete cross-convolutions.
 
-1. **All-Even Parity Sublattice ($2D_8$):**
-   $$y_i \equiv 0 \pmod 2 \quad \forall i, \quad \sum_{i=1}^8 y_i \equiv 0 \pmod 4$$
-2. **All-Odd Parity Sublattice ($2 [ D_8 + (\tfrac{1}{2})^8 ]$):** $y_i \equiv 1 \pmod 2 \quad \forall i, \quad \sum_{i=1}^8 y_i \equiv 0 \pmod 4$
-   $$y_i \equiv 1 \pmod 2 \quad \forall i, \quad \sum_{i=1}^8 y_i \equiv 0 \pmod 4$$
+The complete research suite consists of five preprints establishing the theoretical derivations, asymptotic complexity proofs, and hardware-native C++ reference implementations:
 
-### 3. Orthogonal Dimension-Paired Bisection ($4\text{D} \times 4\text{D}$)
-Because squared Euclidean distance is additively separable:
+*   **Paper I: An Integer-Only Orthotropic Lattice Enumeration Framework and Asymptotic Convergence of Discrete Rational π**
+    *   *Core Premise:* Couples orthotropic boundaries 4r ± 1 to construct Diophantine parity constraints that mathematically prohibit boundary-vertex collisions.
+    *   *Result:* Resolves boundary discrepancy and derives a deterministic, rational convergence envelope for discrete π_d ∈ ℚ.
+    *   *Zenodo DOI:* [10.5281/zenodo.22282210](https://doi.org/10.5281/zenodo.22282210) | *GitHub:* [orthotropic-parity-and-discrete-pi](https://github.com/Andrew-J-Morris/orthotropic-parity-and-discrete-pi)
 
-$$\Vert{}y\Vert{}^2 = \sum_{i=1}^4 y_i^2 + \sum_{j=5}^8 y_j^2 = S_A + S_B$$
+*   **Paper II: A Dimension-Paired Combinatorial Framework: Asymptotic O(r^2) Reduction and O(r^2 log_2 N log r) Generalized Convolution for High-Dimensional Discrete Lattice Enumeration**
+    *   *Core Premise:* Decomposes 4D space as orthogonal planes (Z^4 ≅ Z^2 × Z^2), reducing 4-space enumeration from O(r^4) to a single-pass 1D dot product in strict O(r^2) without floating-point operations.
+    *   *Generalization:* Applies recursive bisection via Number Theoretic Transforms (NTT) in finite fields Z_p[t], collapsing N-dimensional ball enumeration to O(r^2 log_2 N log r).
+    *   *Zenodo DOI:* [10.5281/zenodo.22509388](https://doi.org/10.5281/zenodo.22509388) | *GitHub:* [dimension-paired-cross-convolution](https://github.com/Andrew-J-Morris/dimension-paired-cross-convolution)
 
-The 8-dimensional space decouples into two orthogonal 4D submanifolds ($\mathbb{Z}^8 \cong \mathbb{Z}^4 \times \mathbb{Z}^4$). By pre-filtering 4D profiles into modulo-4 parity classes and executing sparse-index sweeps, the terminal volume integration collapses from $\mathcal{O}(r^8)$ to a single-pass 1D dot product in strict $\mathcal{O}(r^2)$.
+*   **Paper III: Hierarchical Dimension-Pairing: Hardware-Native O(r^2) Enumeration of 5D through 8D Spherical Lattices and High-Dimensional Capacity Limits**
+    *   *Core Premise:* Neutralizes the historical odd-dimension class-number barrier for Z^5 and Z^7 by slicing 1D axial profiles against precomputed even-dimensional hyperdisk profiles.
+    *   *Empirical Scaling:* Verifies sequences against OEIS baselines (A000333–A000336), and benchmarks a 1024-dimensional R = 2896 hyperball (output = 831168560 (mod 998244353)) in 1561.833 ms on a single desktop core.
+    *   *Zenodo DOI:* [10.5281/zenodo.22691273](https://doi.org/10.5281/zenodo.22691273) | *GitHub:* [hierarchical-ntt-bisection](https://github.com/Andrew-J-Morris/hierarchical-ntt-bisection)
+
+*   **Paper IV: Parity-Filtered Bisection: Hardware-Native O(r^2) Enumeration of Optimal D_N Lattices**
+    *   *Core Premise:* Extends the bisection architecture beyond primitive grids to dense, non-orthogonal kissing-number lattices. By redefining geometries as parity-constrained sublattices of Z^N (∑ x_i ≡ 0 (mod 2)), internal coordinate staggering is fully absorbed into pre-filtered arrays.
+    *   *Result:* Achieves hardware-native O(r^2) exact enumeration for Face-Centered Cubic (D_3), the 24-cell honeycomb (D_4), and the D_8 root lattice, verified bit-for-bit against OEIS A005875, A004011, and A004013.
+    *   *Zenodo DOI:* [10.5281/zenodo.22824219](https://doi.org/10.5281/zenodo.22824219) | *GitHub:* [parity-filtered-kissing-lattices](https://github.com/Andrew-J-Morris/parity-filtered-kissing-lattices)
+
+*   **Paper V: Parity-Filtered Bisection of the E_8 Lattice: Hardware-Native Dimension-Paired Enumeration via Diophantine Scalar Transformation**
+    *   *Core Premise:* Resolves the fractional half-integer coordinate union inherent to standard E_8 geometry via a uniform 2E_8 scalar dilation, mapping the continuous domain into discrete All-Even and All-Odd parity sublattices governed by an invariant modulo-4 sum constraint.
+    *   *Result:* Extends the O(r^2) complexity collapse to the densest 8D sphere packing, accelerating 4D submanifolds via sparse-index traversal and resolving terminal volumes in single-pass dot products, verified bit-for-bit against OEIS A004010.
+    *   *Zenodo DOI:* [10.5281/zenodo.22962066](https://doi.org/10.5281/zenodo.22962066) | *GitHub:* [e8-parity-bisection](https://github.com/Andrew-J-Morris/e8-parity-bisection)
+
+**The Empirical Validation**
+
+The C++ implementations are designed as self-contained, reproducible test benches running exclusively on 64-bit integer ALUs with zero floating-point emulation:
+*   Resolving 246+ million points in the 4D 24-cell honeycomb at R=100 in 2 ms on consumer hardware.
+*   Pushing the finite-field Number Theoretic Transform (NTT) bisection tree to its theoretical single-prime 2-adic ceiling (R = 2896, transform size M = 2^23), evaluating a 1024-dimensional hyperball across an 8.38-million-element ring in 1,561 ms on a single desktop core.
+*   Evaluating 7-dimensional bounding hyperballs from R = 0..5000, culminating in a bit-perfect 27-digit lattice point count, thereby extending OEIS A055413 from R = 0..500 to R = 0..5000.
+*   Resolving 8-dimensional E_8 lattice bounds through n = 10,000 (scaled domain bound ||y||^2 <= 80,000), accumulating 649,533,725,496,097,441 points in 606 ms on consumer hardware, verified 100% bit-exact against the modular divisor sum sieve (OEIS A004010).
+
+All five preprints, source code, and benchmark suites are open-access. Feedback on the combinatorial proofs, algorithmic bounds, and hardware pipelining is welcome.
 
 ---
 
-## Empirical Verification & Benchmarks
+### The Discrete Lattice Research Suite
+This repository is part of a 5-paper research program establishing hardware-native, integer-only lattice enumeration:
 
-The benchmark suite verifies exact lattice shell counts against the classical modular theta series divisor sum sieve:
-
-$$\Theta_{E_8}(q) = 1 + 240 \sum_{k=1}^\infty \sigma_3(k) q^{2k} \quad (\text{OEIS A004010})$$
-
-where $\sigma_3(k) = \sum_{d\vert{}k} d^3$.
-
-### Benchmark Milestone ($n = 10{,}000$)
-* **Target Radial Shell:** $n = 10{,}000$ (dilated boundary $\Vert{}y\Vert{}^2 \le 80{,}000$)
-* **Accumulated Point Count:** `649,533,725,496,097,441`
-* **Execution Time:** ~606 ms on consumer x86_64 hardware (single core)
-* **Mathematical Accuracy:** 100% bit-exact parity match across all evaluated shells ($k = 0 \dots 10{,}000$) with zero floating-point emulation.
+1. **[orthotropic-parity-and-discrete-pi](https://github.com/Andrew-J-Morris/orthotropic-parity-and-discrete-pi):** 3D row-collapse, 4r ± 1 parity bounds, and rational π_d ∈ ℚ convergence. [[Zenodo DOI: 10.5281/zenodo.22282210](https://doi.org/10.5281/zenodo.22282210)]
+2. **[dimension-paired-cross-convolution](https://github.com/Andrew-J-Morris/dimension-paired-cross-convolution):** 4D orthogonal plane bisection (O(r^2)) and generalized NTT convolution (O(r^2 log_2 N log r)). [[Zenodo DOI: 10.5281/zenodo.22509388](https://doi.org/10.5281/zenodo.22509388)]
+3. **[hierarchical-ntt-bisection](https://github.com/Andrew-J-Morris/hierarchical-ntt-bisection):** 5D–8D odd-dimension slicing, OEIS A000333–A000336 verification, and N=1024 NTT scaling. [[Zenodo DOI: 10.5281/zenodo.22691273](https://doi.org/10.5281/zenodo.22691273)]
+4. **[parity-filtered-kissing-lattices](https://github.com/Andrew-J-Morris/parity-filtered-kissing-lattices):** Exact O(r^2) kissing-number root lattices (D_3 FCC, D_4 24-cell, and D_8). [[Zenodo DOI: 10.5281/zenodo.22824219](https://doi.org/10.5281/zenodo.22824219)]
+5. **[e8-parity-bisection](https://github.com/Andrew-J-Morris/e8-parity-bisection):** 2E_8 scalar dilation, All-Even/All-Odd coset bisection, and exact O(r^2) terminal enumeration for the E_8 lattice (OEIS A004010). [[Zenodo DOI: 10.5281/zenodo.22962066](https://doi.org/10.5281/zenodo.22962066)]
 
 ---
 
-## Quickstart
-
-### Prerequisites
-* A 64-bit C++20 compliant compiler (`g++` $\ge 11$, `clang++` $\ge 13$, or MSVC $\ge 2019$).
-* Target architecture with 64-bit integer registers (`uint64_t` / `__int128_t`).
-
-### 1. Compilation
-Clone the repository and compile with maximum optimization:
-
-```bash
-git clone [https://github.com/Andrew-J-Morris/e8-parity-bisection.git](https://github.com/Andrew-J-Morris/e8-parity-bisection.git)
-cd e8-parity-bisection
-g++ -O3 -std=c++20 -march=native E8_Parity_Bisection.cpp -o e8_benchmark
+## ⚖️ License
+This project is licensed under the MIT License - see the LICENSE file for details.
